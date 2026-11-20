@@ -14,12 +14,69 @@ public class GatoDAO {
 
     public GatoDAO(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-        String sql = "SELECT * FROM gato";
+        String sql = """
+                SELECT g.*,
+                       gf.desmamado,
+                       ga.castrado,
+                       ga.historicoComportamental
+                FROM gato g
+                LEFT JOIN gatoFilhote gf ON gf.fk_gato = g.id
+                LEFT JOIN gatoAdulto ga ON ga.fk_gato = g.id
+                """;
 
-        this.listaGatos = jdbcTemplate.query(
-                sql,
-                new BeanPropertyRowMapper<>(Gato.class)
-        );
+        this.listaGatos = jdbcTemplate.query(sql, (rs, rowNum) -> {
+
+            Gato gato;
+
+            if (rs.getObject("desmamado") != null) { // ve se o gatinho eh filhote
+                // Cria GatoFilhote
+
+                gato = new GatoFilhote(
+                        rs.getString("nome"),
+                        rs.getString("sexo"),
+                        rs.getInt("idadeMeses"),
+                        rs.getString("personalidade"),
+                        rs.getBoolean("precisaCuidadosEspeciais"),
+                        rs.getString("descricaoCuidados"),
+                        rs.getString("descricaoAparencia"),
+                        rs.getBoolean("vacinado"),
+                        rs.getBoolean("desmamado")
+                );
+
+            } else if (rs.getObject("castrado") != null) { // vê se tem gato Adulto
+                // Cria GatoAdulto
+                gato = new GatoAdulto(
+                        rs.getString("nome"),
+                        rs.getString("sexo"),
+                        rs.getInt("idadeMeses"),
+                        rs.getString("personalidade"),
+                        rs.getBoolean("precisaCuidadosEspeciais"),
+                        rs.getString("descricaoCuidados"),
+                        rs.getString("descricaoAparencia"),
+                        rs.getBoolean("vacinado"),
+                        rs.getBoolean("castrado"),
+                        rs.getString("historicoComportamental")
+                );
+
+            } else {
+                // Cria Gato
+                gato = new Gato(
+                        rs.getString("nome"),
+                        rs.getString("sexo"),
+                        rs.getInt("idadeMeses"),
+                        rs.getString("personalidade"),
+                        rs.getBoolean("precisaCuidadosEspeciais"),
+                        rs.getString("descricaoCuidados"),
+                        rs.getString("descricaoAparencia"),
+                        rs.getBoolean("vacinado")
+                );
+            }
+
+            gato.setId(rs.getInt("id"));
+            gato.setAdotado(rs.getBoolean("adotado"));
+
+            return gato;
+        });
     }
 
     public void save(Gato gato) {

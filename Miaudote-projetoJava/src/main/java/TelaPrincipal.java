@@ -8,7 +8,7 @@ public class TelaPrincipal extends JFrame { // Define a janela principal do Miau
     private final Color rosaBotao = new Color(217, 107, 150);
     private final Color rosaTexto = new Color(213, 5, 87);
 
-    public TelaPrincipal() { // Construtor: configura a janela principal.
+    public TelaPrincipal() { // Construtor: configu+ra a janela principal.
         setTitle("Miaudote - Adoção de Gatinhos"); // Define o título da janela.
         setSize(600, 400); // Define largura e altura da janela.
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Encerra o programa ao fechar esta janela.
@@ -213,6 +213,39 @@ public class TelaPrincipal extends JFrame { // Define a janela principal do Miau
 
             JComboBox<String> filtro = new JComboBox<>(opcoesFiltro);
 
+            java.util.List<Gato> gatosExibidos =
+                    new java.util.ArrayList<>(gatos);
+
+            filtro.addActionListener(e -> {
+
+                String opcao = filtro.getSelectedItem().toString();
+
+                java.util.List<? extends Gato> resultado;
+
+                switch (opcao) {
+                    case "Cuidados especiais":
+                        resultado = dao.buscarGatinhosEspeciais();
+                        break;
+
+                    case "Filhotes":
+                        resultado = dao.buscarGatosFilhotes();
+                        break;
+
+                    case "Adultos":
+                        resultado = dao.buscarGatosAdultos();
+                        break;
+
+                    default:
+                        resultado = dao.buscarTodos();
+                        break;
+                }
+
+                gatosExibidos.clear();
+                gatosExibidos.addAll(resultado);
+
+                atualizarTabela(gatosExibidos, modelo);
+            });
+
             JPanel painelTitulo = new JPanel(new BorderLayout());
             painelTitulo.setBackground(new Color(255, 247, 250));
 
@@ -238,6 +271,26 @@ public class TelaPrincipal extends JFrame { // Define a janela principal do Miau
                     "Erro",
                     JOptionPane.ERROR_MESSAGE
             );
+        }
+    }
+
+    private void atualizarTabela(
+            java.util.List<? extends Gato> gatos,
+            javax.swing.table.DefaultTableModel modelo) {
+
+        modelo.setRowCount(0); // Limpa as linhas q estavam aparecendo
+
+        for (Gato gato : gatos) { // percorre a lista nova de gatinhos
+            modelo.addRow(new Object[]{
+                    gato.getNome(),
+                    gato.getIdadeMeses(),
+                    gato.getSexo(),
+                    gato.getPersonalidade(),
+                    gato.getDescricaoAparencia(),
+                    gato.getVacinado() ? "Sim" : "Não",
+                    gato.getPrecisaCuidadosEspeciais() ? "Sim" : "Não",
+                    gato.getAdotado() ? "Sim" : "Não"
+            });
         }
     }
 
